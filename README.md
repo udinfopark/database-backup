@@ -1,4 +1,4 @@
-# Database Backup container for mysql/mariadb and postgresql with optional cron schedule
+# MariaDB, MySQL and PostgreSQL database backup container for Docker and Kubernetes with optional cron schedule 
 
 
 ## Create docker image
