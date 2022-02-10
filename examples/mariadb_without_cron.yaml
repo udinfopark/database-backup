@@ -1,0 +1,36 @@
+version: '3.5'
+services:
+  mariadb:
+    image: 'mariadb:latest'
+    environment:
+      MARIADB_ROOT_PASSWORD: 'testpass'
+    ports:
+      - '3306:3306'
+    networks:
+      - mariadb
+
+  mariadb-backup:
+    image: database-backup:latest
+    environment:
+      DB_TYPE: 'mariadb'
+      DB_USER: 'root'
+      DB_PASS: 'testpass'
+#      DB_NAME:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      ALL_DATABASES: 'yes'
+      BACKUP_PATH: '/backup'
+      RETENTION_DAYS: 30
+      TAG: 'test'
+#      DB_ENGINE:
+#      CRON_SCHEDULE: "* * * * *"
+    depends_on:
+      - mariadb
+    volumes:
+      - "/opt/backup:/backup"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - mariadb
+
+networks:
+  mariadb:

@@ -1,0 +1,37 @@
+version: '3.5'
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_PASSWORD: 'testpass'
+    ports:
+      - '5432:5432'
+    networks:
+      - postgres
+
+  postgres-backup:
+    image: database-backup:latest
+    environment:
+      DB_TYPE: 'postgresql'
+      DB_USER: 'postgres'
+      DB_PASS: 'testpass'
+#      DB_NAME:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      ALL_DATABASES: 'yes'
+      BACKUP_PATH: '/backup'
+      RETENTION_DAYS: 30
+      TAG: 'test'
+#      DB_ENGINE:
+      CRON_SCHEDULE: "* * * * *"
+
+    depends_on:
+      - postgres
+    volumes:
+      - "/opt/backup:/backup"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - postgres
+
+networks:
+  postgres:
