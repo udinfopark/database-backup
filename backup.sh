@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# 0.1 2022.02.03. Molnar, Sandor Gabor <molnarsg@gmail.com>
+# v0.1 2022.02.03. Molnar, Sandor Gabor <molnar.sandor.gabor@udinfopark.hu>
+# v0.2 2022.02.10. Molnar, Sandor Gabor <molnar.sandor.gabor@udinfopark.hu>
 
 # Expected environment variables from container settings
 # DB_USER: database user which has rights to dump all/selected databases
@@ -29,64 +30,64 @@
 ### Environment variables and parameter check
 
 # If the command line first parameter is "fromcron" that means it started from cron, so schedule is not needed.
-if [[ $1 == "fromcron" ]]; then
+if [ "$1" = 'fromcron' ]; then
     CRON_SCHEDULE=''
 fi
 
-if [[ ${DB_USER} == "" ]]; then
-    echo "Missing DB_USER env variable"
+if [ "${DB_USER}" = '' ]; then
+    echo 'Missing DB_USER environment variable'
     exit 1
 fi
-if [[ ${DB_PASS} == "" ]]; then
-    echo "Missing DB_PASS env variable"
+if [ "${DB_PASS}" = '' ]; then
+    echo 'Missing DB_PASS environment variable'
     exit 1
 fi
-if [[ ${DB_HOST} == "" ]]; then
-    echo "Missing DB_HOST env variable"
+if [ "${DB_HOST}" = '' ]; then
+    echo 'Missing DB_HOST environment variable'
     exit 1
 fi
 
-if [[ ${DB_TYPE} == "mysql" ]]; then
-    DB_TYPE="mariadb"
+if [ "${DB_TYPE}" = 'mysql' ]; then
+    DB_TYPE='mariadb'
 fi
-if ! [[ ${DB_TYPE} == "mariadb" || ${DB_TYPE} == "postgresql" ]]; then
-    echo "Unsupported DB_TYPE"
+if [ "${DB_TYPE}" != 'mariadb' ] && [ "${DB_TYPE}" != 'postgresql' ]; then
+    echo 'Unsupported DB_TYPE'
     exit 1
 fi
-if [[ ${DB_TYPE} == "postgresql" ]]; then
+if [ "${DB_TYPE}" = 'postgresql' ]; then
     export PGPASSWORD="${DB_PASS}"
 fi
 
 
-if [[ ${DB_PORT} == "" ]]; then
-    if [[ ${DB_TYPE} == "mariadb" ]]; then
+if [ "${DB_PORT}" = '' ]; then
+    if [ "${DB_TYPE}" = 'mariadb' ]; then
         DB_PORT=3306
     fi
-    if [[ ${DB_TYPE} == "postgresql" ]]; then
+    if [ "${DB_TYPE}" = 'postgresql' ]; then
         DB_PORT=5432
     fi
 fi
 
-if [[ ${RETENTION_DAYS} == "" ]]; then
+if [ "${RETENTION_DAYS}" = '' ]; then
     RETENTION_DAYS=31
 fi
-if [[ ${TAG} == "" ]]; then
-    TAG="-"
+if [ "${TAG}" = '' ]; then
+    TAG='-'
 fi
 
-MARIADB_OPTIONS="--lock-all-tables"
+MARIADB_OPTIONS='--lock-all-tables'
 
-if [[ ${DB_ENGINE} == "" ]]; then
-    DB_ENGINE="innodb"
+if [ "${DB_ENGINE}" = '' ]; then
+    DB_ENGINE='innodb'
 fi
-if [[ ${DB_ENGINE} == "innodb" ]]; then
-    MARIADB_OPTIONS=" --single-transaction"
+if [ "${DB_ENGINE}" = 'innodb' ]; then
+    MARIADB_OPTIONS=' --single-transaction'
 fi
 
 
-if [[ ${ALL_DATABASES} == "" ]]; then
-    if [[ ${DB_NAME} == "" ]]; then
-        echo "Missing DB_NAME env variable"
+if [ "${ALL_DATABASES}" = 'x' ]; then
+    if [ "${DB_NAME}" = 'x' ]; then
+        echo 'Missing DB_NAME environment variable'
         exit 1
     fi
 fi
@@ -96,43 +97,43 @@ fi
 function create_path {
     DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 
-    if [[ ${TAG} == "-" ]]; then
+    if [ "${TAG}" = '-' ]; then
         BPATH="${BACKUP_PATH}/${DATE}"
     else
         BPATH="${BACKUP_PATH}/${DATE}-${TAG}"
     fi
-    mkdir -p ${BPATH}
+    mkdir -p "${BPATH}"
     export BACKUP_DIR="${BPATH}"
 }
 
 function backup_mariadb {
-    if [[ ${ALL_DATABASES} == "" ]]; then
-        mysqldump --user="${DB_USER}" --password="${DB_PASS}" --host="${DB_HOST}" ${MARIADB_OPTIONS} "$@" "${DB_NAME}" | gzip > ${BACKUP_DIR}/"${DB_NAME}".sql.gz
+    if [ "${ALL_DATABASES}" = '' ]; then
+        mysqldump --user="${DB_USER}" --password="${DB_PASS}" --host="${DB_HOST}" ${MARIADB_OPTIONS} "${DB_NAME}" | gzip > "${BACKUP_DIR}/${DB_NAME}.sql.gz"
     else
-        databases=`mysql --user="${DB_USER}" --password="${DB_PASS}" --host="${DB_HOST}" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database`
+        databases=$(mysql --user="${DB_USER}" --password="${DB_PASS}" --host="${DB_HOST}" -e "SHOW DATABASES;" | tr -d "| " | grep -v Database)
         for db in $databases; do
-            if [[ "$db" != "information_schema" ]] && [[ "$db" != "performance_schema" ]] && [[ "$db" != "mysql" ]] && [[ "$db" != _* ]]; then
-                mysqldump --user="${DB_USER}" --password="${DB_PASS}" --host="${DB_HOST}" ${MARIADB_OPTIONS} --databases $db | gzip > ${BACKUP_DIR}/$db.sql.gz
+            if [ "$db" != 'information_schema' ] && [ "$db" != 'performance_schema' ] && [ "$db" != 'mysql' ]; then
+                mysqldump --user="${DB_USER}" --password="${DB_PASS}" --host="${DB_HOST}" ${MARIADB_OPTIONS} --databases "$db" | gzip > "${BACKUP_DIR}/$db.sql.gz"
             fi
         done
     fi
 }
 
 function backup_postgresql {
-    if [[ ${ALL_DATABASES} == "" ]]; then
-        pg_dump -U "${DB_USER}" -h "${DB_HOST}" -p "${DB_PORT}" ${POSTGRESQL_OPTIONS} "${DB_NAME}" | gzip > ${BACKUP_DIR}/"${DB_NAME}".sql.gz
+    if [ "${ALL_DATABASES}" = '' ]; then
+        pg_dump -U "${DB_USER}" -h "${DB_HOST}" -p "${DB_PORT}" ${POSTGRESQL_OPTIONS} "${DB_NAME}" | gzip > "${BACKUP_DIR}/${DB_NAME}.sql.gz"
     else
-        pg_dumpall -U "${DB_USER}" -h "${DB_HOST}" -p "${DB_PORT}" ${POSTGRESQL_OPTIONS} | gzip > ${BACKUP_DIR}/all.sql.gz
+        pg_dumpall -U "${DB_USER}" -h "${DB_HOST}" -p "${DB_PORT}" ${POSTGRESQL_OPTIONS} | gzip > "${BACKUP_DIR}/all.sql.gz"
     fi
 }
 
 function cleanup_old_backups {
-    find ${BACKUP_PATH} -mtime +${RETENTION_DAYS} -delete
+    find "${BACKUP_PATH}" -mtime +${RETENTION_DAYS} -delete
 }
 
 function backup {
     create_path
-    if [[ ${DB_TYPE} == "mariadb" ]]; then
+    if [ "${DB_TYPE}" = 'mariadb' ]; then
         backup_mariadb
     else
         backup_postgresql
@@ -141,7 +142,7 @@ function backup {
 }
 
 function setup_cron {
-    CRON_SCHEDULE="$(echo "${CRON_SCHEDULE}" | sed "s/[\"\']//g")"
+    CRON_SCHEDULE="${CRON_SCHEDULE/[\"\']//g}"
     echo "${CRON_SCHEDULE} /app/backup.sh fromcron" >/app/crontab.txt
     /usr/bin/crontab /app/crontab.txt
 
@@ -150,7 +151,7 @@ function setup_cron {
 
 
 ### Main part
-if [[ "${CRON_SCHEDULE}" != "" ]]
+if [ "${CRON_SCHEDULE}" != '' ]
 then
     setup_cron
 else
