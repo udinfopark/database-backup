@@ -1,9 +1,10 @@
 # Database Backup container for mysql/mariadb and postgresql with optional cron schedule
 
+
 ## Create docker image
 
-docker build . -t nexus.udinfopark.hu:8444/repository/k8s/database-backup:0.1
-docker push nexus.udinfopark.hu:8444/repository/k8s/database-backup:0.1
+docker build . -t database-backup:0.1
+
 
 
 ## Usage
@@ -12,6 +13,8 @@ You can find example docker-compose.yaml files in the directory examples.
 - cp examples/postgresql_with_cron.yaml docker-compose.yaml
 - customize/configure in the docker-compose.yaml
 - docker-compose up
+
+
 
 ## Customization / configuration
 
