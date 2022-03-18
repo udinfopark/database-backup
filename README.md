@@ -6,7 +6,7 @@ This project is a MariaDB, MySQL and PostgreSQL database backup container for Do
 
 ## Create docker image
 
-docker build . -t database-backup:0.1
+docker build . -t database-backup:0.3
 
 
 
@@ -38,3 +38,14 @@ Expected environment variables from container settings (docker-compose.yaml)
 - CRON_SCHEDULE: if you want use periodically it, define the schedule by the usual cron format
               The container will run inside the cron. This is recommended in docker environment.
               In Kubernetes environment use the CronJob Kubernetes object.
+- EMAIL_ON_ERROR: send email on error
+- EMAIL_ON_SUCCESS: send email on successful execute
+- SKAWS_SERVER: outgoing smtp server address/name
+- SKAWS_PORT: outgoing smtp server ip address
+- SKAWS_TLS: use tle true/false
+- SKAWS_FROM: sender email address
+- SKAWS_TO: recipient email address
+- SKAWS_AUTH: authetication method on smtp server
+- SKAWS_USER: user name for smtp server
+- SKAWS_PASSWORD: password for smtp server
+- SKAWS_HEADER: optional header field for the email, for example: "Subject: this is a test message"

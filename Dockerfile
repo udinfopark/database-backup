@@ -1,6 +1,7 @@
 FROM alpine:3.15.0
-LABEL maintainer="Molnár, Sándor Gábor <molnar.sandor.gabor@udinfopark.hu>"
+LABEL maintainer="Molnár, Sándor Gábor <molnar.sandor.gabor@udinfopark.com>"
 
+ENV SWAKS_VERSION=20201014.0
 
 ENV DB_TYPE \
     DB_USER \
@@ -13,9 +14,28 @@ ENV DB_TYPE \
     RETENTION_DAYS \
     TAG \
     DB_ENGINE \
-    CRON_SCHEDULE
+    CRON_SCHEDULE \
+    EMAIL_ON_ERROR \
+    EMAIL_ON_SUCCESS \
+    SKAWS_SERVER \
+    SKAWS_PORT \
+    SKAWS_TLS \
+    SKAWS_FROM \
+    SKAWS_TO \
+    SKAWS_AUTH \
+    SKAWS_USER \
+    SKAWS_PASSWORD \
+    SKAWS_HEADER
+    
+RUN apk add --update --no-cache mariadb-client postgresql-client bash findutils coreutils busybox \
+        perl perl-net-ssleay perl-net-dns curl make tzdata
 
-RUN apk update && apk add --no-cache mariadb-client postgresql-client bash findutils coreutils busybox
+RUN curl -SLk https://www.jetmore.org/john/code/swaks/files/swaks-$SWAKS_VERSION/swaks -o swaks; \
+    chmod +x swaks; \
+    yes | perl -MCPAN -e 'install Authen::NTLM'; \
+    rm -rf /root/.cpan; \
+    apk del make; \
+    mv /swaks /usr/bin
 
 CMD mkdir /app
 
