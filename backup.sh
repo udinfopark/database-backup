@@ -28,17 +28,17 @@
 #                In Kubernetes environment use the CronJob Kubernetes object so set it's value to "kubernetes"
 #
 #
-# EMAIL_ON_ERROR
-# EMAIL_ON_SUCCESS
-# SWAKS_SERVER
-# SWAKS_PORT
-# SWAKS_TLS
-# SWAKS_FROM
-# SWAKS_TO
-# SWAKS_AUTH
-# SWAKS_USER
-# SWAKS_PASSWORD
-# SWAKS_HEADER
+# EMAIL_ON_ERROR: send email on error
+# EMAIL_ON_SUCCESS: send email on successful execute
+# SKAWS_SERVER: outgoing smtp server address/name
+# SKAWS_PORT: outgoing smtp server ip address
+# SKAWS_TLS: use tle true/false
+# SKAWS_FROM: sender email address
+# SKAWS_TO: recipient email address
+# SKAWS_AUTH: authetication method on smtp server
+# SKAWS_USER: user name for smtp server
+# SKAWS_PASSWORD: password for smtp server
+# SKAWS_HEADER: optional header field for the email, for example: "Subject: this is a test message"
 #
 
 function error_echo { >&2 echo $@; }
