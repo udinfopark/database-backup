@@ -3,7 +3,7 @@
 # 0.1 2022.02.03. Molnar, Sandor Gabor <molnar.sandor.gabor@udinfopark.hu>
 # 0.2 2022.02.10. Molnar, Sandor Gabor <molnar.sandor.gabor@udinfopark.hu>
 # 0.3 2022.03.17. Molnar, Sandor Gabor <molnar.sandor.gabor@udinfopark.hu>
-
+# 0.4 2002.07.29. Molnar, Sandor Gabor <molnar.sandor.gabor@udinfopark.hu>: check and set EMAIL_ON_ERROR and EMAIL_ON_SUCCESS to true/false
 
 # Expected environment variables from container settings
 # DB_USER: database user which has rights to dump all/selected databases
@@ -21,18 +21,18 @@
 # RETENTION_DAYS: how much days has to be store in the backup days, default is 30
 #
 # TAG: tag of the backup. With this tag you can distict backups.
-#      Eg: at manuall running before patch: TAG=before_tag
+#      Eg: at manual running before patch: TAG=before_tag
 #
 # CRON_SCHEDULE: if you want use periodically it, define the schedule by the usual cron format
 #                The container will run inside the cron. This is recommended in docker environment.
 #                In Kubernetes environment use the CronJob Kubernetes object so set it's value to "kubernetes"
 #
 #
-# EMAIL_ON_ERROR: send email on error
-# EMAIL_ON_SUCCESS: send email on successful execute
+# EMAIL_ON_ERROR: send email at failed backup
+# EMAIL_ON_SUCCESS: send email at successful backup
 # SKAWS_SERVER: outgoing smtp server address/name
 # SKAWS_PORT: outgoing smtp server ip address
-# SKAWS_TLS: use tle true/false
+# SKAWS_TLS: use tls true/false
 # SKAWS_FROM: sender email address
 # SKAWS_TO: recipient email address
 # SKAWS_AUTH: authetication method on smtp server
@@ -113,7 +113,23 @@ if [ "${ALL_DATABASES}" = 'x' ]; then
     fi
 fi
 
-if [ "${EMAIL_ON_ERROR}" != '' ] || [ "${EMAIL_ON_SUCCESS}" != '' ]; then
+if [ "${EMAIL_ON_ERROR}" != '' ] ; then
+    if [ "${EMAIL_ON_ERROR}" = 'false' ] || [ "${EMAIL_ON_ERROR}" = 'no' ]; then
+        EMAIL_ON_ERROR='false'
+    else
+        EMAIL_ON_ERROR='true'
+    fi
+fi
+
+if [ "${EMAIL_ON_SUCCESS}" != '' ]; then
+    if [ "${EMAIL_ON_SUCCESS}" = 'false' ] || [ "${EMAIL_ON_SUCCESS}" = 'no' ]; then
+        EMAIL_ON_SUCCESS='false'
+    else
+        EMAIL_ON_SUCCESS='true'
+    fi
+fi
+
+if [ "${EMAIL_ON_ERROR}" = 'true' ] || [ "${EMAIL_ON_SUCCESS}" = 'true' ]; then
     if [ "${SWAKS_SERVER}" = '' ]; then
         error_echo 'Missing SWAKS_SERVER environment variable'
         exit 1
@@ -194,11 +210,11 @@ function backup_mariadb {
             fi
         done
     fi
-    if [ "${ERROR_SUM}" != '' ] && [ "${EMAIL_ON_ERROR}" != '' ]; then
+    if [ "${ERROR_SUM}" != '' ] && [ "${EMAIL_ON_ERROR}" = 'true' ]; then
         send_email "${ERROR_SUM}"
         return
     fi
-    if [ "${EMAIL_ON_SUCCESS}" != '' ]; then
+    if [ "${EMAIL_ON_SUCCESS}" = 'true' ]; then
         DIRECTORY_CONTENT=$( ls -al "${BACKUP_DIR}" )
         send_email "${DIRECTORY_CONTENT}"
     fi
@@ -212,11 +228,11 @@ function backup_postgresql {
         pg_dumpall -U "${DB_USER}" -h "${DB_HOST}" -p "${DB_PORT}" "${POSTGRESQL_OPTIONS}" | gzip > "${BACKUP_DIR}/all.sql.gz"
     fi
 
-    if [ "${ERROR_SUM}" != '' ] && [ "${EMAIL_ON_ERROR}" != '' ]; then
+    if [ "${ERROR_SUM}" != '' ] && [ "${EMAIL_ON_ERROR}" = 'true' ]; then
         send_email "${ERROR_SUM}"
         return
     fi
-    if [ "${EMAIL_ON_SUCCESS}" != '' ]; then
+    if [ "${EMAIL_ON_SUCCESS}" = 'true' ]; then
         DIRECTORY_CONTENT=$( ls -al "${BACKUP_DIR}" )
         send_email "${DIRECTORY_CONTENT}"
     fi

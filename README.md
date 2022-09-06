@@ -6,7 +6,7 @@ This project is a MariaDB, MySQL and PostgreSQL database backup container for Do
 
 ## Create docker image
 
-docker build . -t database-backup:0.3
+docker build . -t database-backup:0.4
 
 
 
@@ -34,7 +34,7 @@ Expected environment variables from container settings (docker-compose.yaml)
 - BACKUP_PATH: path in the container where the backups will be created, this should be bind/mount as external volume
 - RETENTION_DAYS: how much days has to be store in the backup days, default is 30
 - TAG: tag of the backup. With this tag you can distict backups.
-    Eg: at manuall running before patch: TAG=before_tag
+    Eg: at manual running before patch: TAG=before_tag
 - CRON_SCHEDULE: if you want use periodically it, define the schedule by the usual cron format
               The container will run inside the cron. This is recommended in docker environment.
               In Kubernetes environment use the CronJob Kubernetes object.
