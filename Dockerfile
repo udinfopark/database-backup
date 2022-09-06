@@ -1,4 +1,4 @@
-FROM alpine:3.15.0
+FROM alpine:3.16.2
 LABEL maintainer="Molnár, Sándor Gábor <molnar.sandor.gabor@udinfopark.com>"
 
 ENV SWAKS_VERSION=20201014.0
